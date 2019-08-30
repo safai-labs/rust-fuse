@@ -4,7 +4,8 @@
 //! advantage of Rust's architecture. The only thing we rely on in the real libfuse are mount
 //! and unmount calls which are needed to establish a fd to talk to the kernel driver.
 
-#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
+#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms, use_extern_macros)]
+#![feature(rustc_private)]
 
 use std::convert::AsRef;
 use std::io;
@@ -21,7 +22,8 @@ pub use reply::ReplyXattr;
 #[cfg(target_os = "macos")]
 pub use reply::ReplyXTimes;
 pub use request::Request;
-pub use session::{Session, BackgroundSession};
+pub use session::{Session, BackgroundSession, EventedSession};
+use serde_derive::{Deserialize, Serialize};
 
 mod channel;
 mod ll;
@@ -30,6 +32,7 @@ mod request;
 mod session;
 
 /// File types
+#[cfg_attr(feature = "serde_support", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum FileType {
     /// Named pipe (S_IFIFO)
@@ -49,6 +52,7 @@ pub enum FileType {
 }
 
 /// File attributes
+#[cfg_attr(feature = "serde_support", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FileAttr {
     /// Inode number
@@ -378,4 +382,12 @@ pub fn mount<FS: Filesystem, P: AsRef<Path>>(filesystem: FS, mountpoint: P, opti
 /// be unmounted.
 pub unsafe fn spawn_mount<'a, FS: Filesystem+Send+'a, P: AsRef<Path>>(filesystem: FS, mountpoint: P, options: &[&OsStr]) -> io::Result<BackgroundSession<'a>> {
     Session::new(filesystem, mountpoint.as_ref(), options).and_then(|se| se.spawn())
+}
+
+///
+/// Mount the given filesystem to the given mountpoint. this function
+/// set the fuse fd as non blocking and implement `mio::Evented`
+/// 
+pub fn evented<FS: Filesystem, P: AsRef<Path>>(filesystem: FS, mountpoint: P, options: &[&OsStr]) -> io::Result<EventedSession<FS>> {
+    Session::new(filesystem, mountpoint.as_ref(), options).and_then(|se| se.evented())
 }

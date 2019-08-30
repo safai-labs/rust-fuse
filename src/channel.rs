@@ -72,6 +72,13 @@ impl Channel {
         // dropping the channel, it'll return an EBADF error.
         ChannelSender { fd: self.fd }
     }
+
+    ///
+    /// Return the raw fuse socket fd
+    /// 
+    pub unsafe fn raw_fd(&self) -> &c_int {
+        &self.fd
+    }
 }
 
 impl Drop for Channel {

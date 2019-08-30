@@ -52,8 +52,8 @@ pub enum FileType {
 }
 
 /// File attributes
-#[cfg_attr(feature = "serde_support", derive())]
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "serde_support", derive(Serialize, Deserialize))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FileAttr {
     /// Inode number
     pub ino: u64,

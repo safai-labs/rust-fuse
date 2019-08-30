@@ -43,6 +43,15 @@ pub struct Session<FS: Filesystem> {
     pub destroyed: bool,
 }
 
+enum RecvResult<'a> {
+    // A request has been readed
+    Some(Request<'a>),
+    // No request available but safe to retry
+    Retry,
+    // Filesystem has been unmounted or there is an error, next call to receive should return an error
+    Drop(Option<io::Error>),
+}
+
 impl<FS: Filesystem> Session<FS> {
     /// Create a new session by mounting the given filesystem to the given mountpoint
     pub fn new(filesystem: FS, mountpoint: &Path, options: &[&OsStr]) -> io::Result<Session<FS>> {
@@ -75,28 +84,38 @@ impl<FS: Filesystem> Session<FS> {
         loop {
             // Read the next request from the given channel to kernel driver
             // The kernel driver makes sure that we get exactly one request per read
-            match self.ch.receive(&mut buffer) {
-                Ok(()) => match Request::new(self.ch.sender(), &buffer) {
-                    // Dispatch request
-                    Some(req) => req.dispatch(self),
-                    // Quit loop on illegal request
-                    None => break,
-                },
-                Err(err) => match err.raw_os_error() {
-                    // Operation interrupted. Accordingly to FUSE, this is safe to retry
-                    Some(ENOENT) => continue,
-                    // Interrupted system call, retry
-                    Some(EINTR) => continue,
-                    // Explicitly try again
-                    Some(EAGAIN) => continue,
-                    // Filesystem was unmounted, quit the loop
-                    Some(ENODEV) => break,
-                    // Unhandled error
-                    _ => return Err(err),
-                }
+            match self.receive(&mut buffer) {
+                RecvResult::Some(request) => request.dispatch(self),
+                RecvResult::Retry => continue,
+                RecvResult::Drop(None) => return Ok(()),
+                RecvResult::Drop(Some(err)) => return Err(err),
             }
         }
         Ok(())
+    }
+
+    ///
+    /// Read a single request from the fuse channel
+    /// this can be non blocking if `ll::channel::set_nonblocking` is set on the fuse channel
+    /// 
+    #[inline]
+    fn receive<'a>(&mut self, buffer: &'a mut Vec<u8>) -> RecvResult<'a> {
+        match self.ch.receive(buffer) {
+            Ok(_) => match Request::new(self.ch.sender(), buffer) {
+                // Return request
+                Some(request) => RecvResult::Some(request),
+                // Should drop on illegal request
+                None => RecvResult::Drop(None),
+            },
+            Err(err) => match err.raw_os_error() {
+                // The operation was interupted by the kernel, the user or fuse explicitly request a retry
+                Some(ENOENT) | Some(EINTR) | Some(EAGAIN) => RecvResult::Retry,
+                // Filesystem was unmounted without error
+                Some(ENODEV) => RecvResult::Drop(None),
+                // Return last os error
+                _ => RecvResult::Drop(Some(err)),
+            }
+        }
     }
 }
 
@@ -154,3 +173,37 @@ impl<'a> fmt::Debug for BackgroundSession<'a> {
         write!(f, "BackgroundSession {{ mountpoint: {:?}, guard: JoinGuard<()> }}", self.mountpoint)
     }
 }
+
+use mio::{Evented, Poll, Token, Ready, PollOpt};
+use mio::unix::EventedFd;
+///
+/// A FuseEvented provides a way to use the FUSE filesystem in a custom event
+/// loop. It implements the mio Evented trait, so it can be polled for
+/// readiness.
+///
+// TODO: Drop
+#[derive(Debug)]
+pub struct EventedSession<FS: Filesystem>(Session<FS>);
+
+impl<FS: Filesystem>  Evented for EventedSession<FS> {
+    fn register(&self, poll: &Poll, token: Token, interest: Ready, opts: PollOpt) -> io::Result<()> {
+        let raw_fd = unsafe {self.0.ch.raw_fd() };
+        EventedFd(&raw_fd).register(poll, token, interest, opts)
+    }
+    fn reregister(&self, poll: &Poll, token: Token, interest: Ready, opts: PollOpt) -> io::Result<()> {
+        let raw_fd = unsafe {self.0.ch.raw_fd() };
+        EventedFd(&raw_fd).reregister(poll, token, interest, opts)
+    }
+    fn deregister(&self, poll: &Poll) -> io::Result<()> {
+        let raw_fd = unsafe {self.0.ch.raw_fd() };
+        EventedFd(&raw_fd).deregister(poll)
+    }
+}
+
+impl<FS: Filesystem> EventedSession<FS> {
+    pub fn handle_one_req(&mut self, buf: &mut Vec<u8>) -> io::Result<()> {
+       unimplemented!()
+       // self.0.handle_one_req(buf)
+    }
+}
+ 

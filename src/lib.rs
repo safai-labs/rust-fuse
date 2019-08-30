@@ -22,7 +22,7 @@ pub use reply::ReplyXattr;
 #[cfg(target_os = "macos")]
 pub use reply::ReplyXTimes;
 pub use request::Request;
-pub use session::{Session, BackgroundSession};
+pub use session::{Session, BackgroundSession, EventedSession};
 use serde_derive::{Deserialize, Serialize};
 
 mod channel;
@@ -382,4 +382,12 @@ pub fn mount<FS: Filesystem, P: AsRef<Path>>(filesystem: FS, mountpoint: P, opti
 /// be unmounted.
 pub unsafe fn spawn_mount<'a, FS: Filesystem+Send+'a, P: AsRef<Path>>(filesystem: FS, mountpoint: P, options: &[&OsStr]) -> io::Result<BackgroundSession<'a>> {
     Session::new(filesystem, mountpoint.as_ref(), options).and_then(|se| se.spawn())
+}
+
+///
+/// Mount the given filesystem to the given mountpoint. this function
+/// set the fuse fd as non blocking and implement `mio::Evented`
+/// 
+pub fn evented<FS: Filesystem, P: AsRef<Path>>(filesystem: FS, mountpoint: P, options: &[&OsStr]) -> io::Result<EventedSession<FS>> {
+    unimplemented!()
 }

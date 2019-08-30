@@ -201,9 +201,5 @@ impl<FS: Filesystem>  Evented for EventedSession<FS> {
 }
 
 impl<FS: Filesystem> EventedSession<FS> {
-    pub fn handle_one_req(&mut self, buf: &mut Vec<u8>) -> io::Result<()> {
-       unimplemented!()
-       // self.0.handle_one_req(buf)
-    }
 }
  

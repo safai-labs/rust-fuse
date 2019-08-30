@@ -12,11 +12,11 @@ keywords = ["fuse", "filesystem", "system", "bindings"]
 categories = ["api-bindings", "filesystem"]
 license = "MIT"
 
-[workspace]
-members = [".", "fuse-abi", "fuse-sys"]
+# [workspace]
+# members = [".", "fuse-abi", "fuse-sys"]
 
-[badges]
-travis-ci = { repository = "zargony/rust-fuse" }
+# [badges]
+# travis-ci = { repository = "zargony/rust-fuse" }
 
 [dependencies]
 fuse-abi = { path = "./fuse-abi", version = "=0.4.0-dev" }

@@ -45,7 +45,8 @@ pub struct Session<FS: Filesystem> {
     pub destroyed: bool,
 }
 
-enum RecvResult<'a> {
+#[derive(Debug)]
+pub enum RecvResult<'a> {
     // A request has been readed
     Some(Request<'a>),
     // No request available but safe to retry
@@ -100,7 +101,7 @@ impl<FS: Filesystem> Session<FS> {
     /// this can be non blocking if `ll::channel::set_nonblocking` is set on the fuse channel
     /// 
     #[inline]
-    fn receive<'a>(&mut self, buffer: &'a mut Vec<u8>) -> RecvResult<'a> {
+    pub fn receive<'a>(&mut self, buffer: &'a mut Vec<u8>) -> RecvResult<'a> {
         match self.ch.receive(buffer) {
             Ok(_) => match Request::new(self.ch.sender(), buffer) {
                 // Return request
@@ -211,4 +212,17 @@ impl<FS: Filesystem>  Evented for EventedSession<FS> {
 
 impl<FS: Filesystem> EventedSession<FS> {
 
+    ///
+    /// Read a request from the fuse fd and process it with the filesystem
+    /// 
+    pub fn try_handle(&mut self, buffer: &mut Vec<u8>) -> io::Result<()> {
+        match self.0.receive(buffer) {
+                RecvResult::Some(request) => {
+                    request.dispatch(&mut self.0);
+                    Ok(())
+                },
+                RecvResult::Drop(Some(err)) => Err(err),
+                _ => Ok(())
+        }
+    }
 }

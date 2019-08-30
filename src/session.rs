@@ -12,6 +12,8 @@ use std::path::{PathBuf, Path};
 use thread_scoped::{scoped, JoinGuard};
 use libc::{EAGAIN, EINTR, ENODEV, ENOENT};
 use log::{error, info};
+use mio::{Evented, Poll, Token, Ready, PollOpt};
+use mio::unix::EventedFd;
 
 use crate::channel::{self, Channel};
 use crate::request::Request;
@@ -91,7 +93,6 @@ impl<FS: Filesystem> Session<FS> {
                 RecvResult::Drop(Some(err)) => return Err(err),
             }
         }
-        Ok(())
     }
 
     ///
@@ -116,6 +117,16 @@ impl<FS: Filesystem> Session<FS> {
                 _ => RecvResult::Drop(Some(err)),
             }
         }
+    }
+
+    ///
+    /// Set fuse fd as evented fd (so its can be used with epoll or select)
+    /// Also wrap the `Session` into an `EventedSession` that is usable in the MIO world
+    /// 
+    pub fn evented(mut self) -> io::Result<EventedSession<FS>> {
+        // Set the current session (raw fd) as evented fd
+        self.ch.evented()?;
+        Ok(EventedSession(self))
     }
 }
 
@@ -174,8 +185,6 @@ impl<'a> fmt::Debug for BackgroundSession<'a> {
     }
 }
 
-use mio::{Evented, Poll, Token, Ready, PollOpt};
-use mio::unix::EventedFd;
 ///
 /// A FuseEvented provides a way to use the FUSE filesystem in a custom event
 /// loop. It implements the mio Evented trait, so it can be polled for
@@ -201,5 +210,5 @@ impl<FS: Filesystem>  Evented for EventedSession<FS> {
 }
 
 impl<FS: Filesystem> EventedSession<FS> {
+
 }
- 

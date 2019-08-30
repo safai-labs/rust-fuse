@@ -9,6 +9,7 @@ use std::path::{PathBuf, Path};
 use fuse_sys::{fuse_args, fuse_mount_compat25};
 use libc::{self, c_int, c_void, size_t};
 use log::error;
+use super::ll::channel;
 
 use crate::reply::ReplySender;
 
@@ -78,6 +79,13 @@ impl Channel {
     /// 
     pub unsafe fn raw_fd(&self) -> &c_int {
         &self.fd
+    }
+
+    ///
+    /// Set the fuse fd as evented fd
+    /// 
+    pub fn evented(&mut self) -> io::Result<()> {
+        channel::set_nonblocking(self.fd, true)
     }
 }
 

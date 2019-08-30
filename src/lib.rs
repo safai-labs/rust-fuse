@@ -389,5 +389,5 @@ pub unsafe fn spawn_mount<'a, FS: Filesystem+Send+'a, P: AsRef<Path>>(filesystem
 /// set the fuse fd as non blocking and implement `mio::Evented`
 /// 
 pub fn evented<FS: Filesystem, P: AsRef<Path>>(filesystem: FS, mountpoint: P, options: &[&OsStr]) -> io::Result<EventedSession<FS>> {
-    unimplemented!()
+    Session::new(filesystem, mountpoint.as_ref(), options).and_then(|se| se.evented())
 }

@@ -23,6 +23,8 @@ pub use reply::ReplyXattr;
 pub use reply::ReplyXTimes;
 pub use request::Request;
 pub use session::{Session, BackgroundSession, EventedSession};
+
+#[cfg(feature = "serde_support")]
 use serde_derive::{Deserialize, Serialize};
 
 mod channel;
@@ -387,7 +389,7 @@ pub unsafe fn spawn_mount<'a, FS: Filesystem+Send+'a, P: AsRef<Path>>(filesystem
 ///
 /// Mount the given filesystem to the given mountpoint. this function
 /// set the fuse fd as non blocking and implement `mio::Evented`
-/// 
+///
 pub fn evented<FS: Filesystem, P: AsRef<Path>>(filesystem: FS, mountpoint: P, options: &[&OsStr]) -> io::Result<EventedSession<FS>> {
     Session::new(filesystem, mountpoint.as_ref(), options).and_then(|se| se.evented())
 }

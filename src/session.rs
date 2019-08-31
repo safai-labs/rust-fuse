@@ -47,7 +47,7 @@ pub struct Session<FS: Filesystem> {
 
 #[derive(Debug)]
 pub enum RecvResult<'a> {
-    // A request has been readed
+    // A request has been read
     Some(Request<'a>),
     // No request available but safe to retry
     Retry,

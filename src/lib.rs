@@ -4,7 +4,7 @@
 //! advantage of Rust's architecture. The only thing we rely on in the real libfuse are mount
 //! and unmount calls which are needed to establish a fd to talk to the kernel driver.
 
-#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms, use_extern_macros)]
+#![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
 #![feature(rustc_private)]
 
 use std::convert::AsRef;

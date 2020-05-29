@@ -5,15 +5,15 @@ version = "0.4.0-dev"
 authors = ["Andreas Neuhaus <zargony@zargony.com>"]
 description = "Rust library for filesystems in userspace (FUSE)"
 documentation = "https://docs.rs/fuse"
-homepage = "https://github.com/zargony/rust-fuse"
-repository = "https://github.com/zargony/rust-fuse"
+homepage = "https://github.com/zargony/fuse-rs"
+repository = "https://github.com/zargony/fuse-rs"
 readme = "README.md"
 keywords = ["fuse", "filesystem", "system", "bindings"]
 categories = ["api-bindings", "filesystem"]
 license = "MIT"
 
-# [workspace]
-# members = [".", "fuse-abi", "fuse-sys"]
+[workspace]
+members = [".", "fuse-abi", "fuse-sys"]
 
 # [badges]
 # travis-ci = { repository = "zargony/rust-fuse" }
@@ -24,12 +24,14 @@ fuse-sys = { path = "./fuse-sys", version = "=0.4.0-dev" }
 libc = "0.2"
 log = "0.4"
 thread-scoped = "1.0.2"
-serde = {version = "1.0.99"}
-serde_derive = {version = "1.0.99"}
+serde = {version = "1.0.110"}
+serde_derive = {version = "1.0.110"}
 mio = "0.6.19"
+tracing = "0.1.14"
 
 [dev-dependencies]
 env_logger = "0.6"
 
 [features]
 serde_support = []
+tracing_support = []

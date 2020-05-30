@@ -93,7 +93,7 @@ impl Filesystem for HelloFS {
 fn main() {
     env_logger::init();
     let mountpoint = env::args_os().nth(1).unwrap();
-    let options = ["-o", "ro", "-o", "fsname=hello"]
+    let options = ["-o", "ro", "-o", "fsname=hello", "-o", "auto_unmount", "-o", "allow_other", "-o", "default_permissions"]
         .iter()
         .map(|o| o.as_ref())
         .collect::<Vec<&OsStr>>();

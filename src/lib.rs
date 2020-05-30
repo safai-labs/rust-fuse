@@ -5,7 +5,7 @@
 //! and unmount calls which are needed to establish a fd to talk to the kernel driver.
 
 #![warn(missing_docs, missing_debug_implementations, rust_2018_idioms)]
-#![feature(rustc_private)]
+// #![feature(rustc_private)]
 
 use std::convert::AsRef;
 use std::io;

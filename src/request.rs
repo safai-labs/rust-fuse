@@ -11,7 +11,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use libc::{EIO, ENOSYS, EPROTO};
 use fuse_abi::*;
 use fuse_abi::consts::*;
+
+#[cfg(not(feature="tracing_support"))]
 use log::{debug, error, warn};
+
+#[cfg(feature = "tracing_support")]
+use tracing::{debug, error, warn};
+
 
 use crate::channel::ChannelSender;
 use crate::ll;

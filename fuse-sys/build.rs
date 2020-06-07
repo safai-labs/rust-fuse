@@ -5,13 +5,19 @@ const LIBFUSE_NAME: &str = "fuse";
 const LIBFUSE_NAME: &str = "osxfuse";
 
 fn main() {
-    /*
-    pkg_config::Config::new()
-        .atleast_version("2.6.0")
-        .probe(LIBFUSE_NAME)
-        .map_err(|e| eprintln!("{}", e))
-        .unwrap();
-    */
-    println!("cargo:rustc-link-search=native=-L../../../../libfuse/build/lib");
-    println!("cargo:rustc-link-lib=fuse");
+    let libfuse_dir = std::env::var_os("CARGO_MANIFEST_DIR")
+                            .unwrap();
+    let libfuse_dir = std::path::PathBuf::from(libfuse_dir)
+                                .join(&"../../libfuse/build/lib");
+   
+    println!(
+        "cargo:rerun-if-changed={}/libfuse3",
+        libfuse_dir.to_string_lossy()
+    );
+    println!(
+        "cargo:rustc-link-search=native=-L{}",
+        libfuse_dir.to_string_lossy()
+    );
+    println!("cargo:rustc-link-lib=fuse3");
+    println!("cargo:rustc-link-lib={}", LIBFUSE_NAME);
 }

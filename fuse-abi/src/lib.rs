@@ -846,7 +846,7 @@ pub struct fuse_in_header {
     pub nodeid: u64,
     pub uid: u32,
     pub gid: u32,
-    pub pid: u32,
+    pub pid: i32,
     pub padding: u32,
 }
 

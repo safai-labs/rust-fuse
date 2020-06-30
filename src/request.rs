@@ -530,7 +530,7 @@ impl<'a> Request<'a> {
     /// Returns the pid of this request
     #[inline]
     #[allow(dead_code)]
-    pub fn pid(&self) -> u32 {
+    pub fn pid(&self) -> i32 {
         self.request.pid()
     }
 }

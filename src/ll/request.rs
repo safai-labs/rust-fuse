@@ -419,7 +419,7 @@ impl<'a> Request<'a> {
 
     /// Returns the PID of the process that triggered this request.
     #[inline]
-    pub fn pid(&self) -> u32 {
+    pub fn pid(&self) -> i32 {
         self.header.pid
     }
 

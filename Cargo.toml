@@ -21,16 +21,16 @@ members = [".", "fuse-abi", "fuse-sys"]
 [dependencies]
 fuse-abi = { path = "./fuse-abi", version = "=0.4.0-dev", features= [ "abi-7-10" ] }
 fuse-sys = { path = "./fuse-sys", version = "=0.4.0-dev" }
-libc = "0.2"
+libc = "0.2.82"
 log = "0.4"
 thread-scoped = "1.0.2"
 serde = {version = "1.0.110"}
 serde_derive = {version = "1.0.110"}
-mio = "0.6.19"
-tracing = "0.1.14"
+mio = "0.6.23"
+tracing = "0.1.22"
 
 [dev-dependencies]
-env_logger = "0.6"
+env_logger = "0.8.2"
 
 [features]
 serde_support = []

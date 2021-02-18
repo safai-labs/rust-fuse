@@ -10,7 +10,6 @@ use std::{error, fmt, mem};
 
 use super::argument::ArgumentIterator;
 
-
 /// Error that may occur while reading and parsing a request from the kernel driver.
 #[derive(Debug)]
 pub enum RequestError {
@@ -27,16 +26,22 @@ pub enum RequestError {
 impl fmt::Display for RequestError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RequestError::ShortReadHeader(len) => write!(f, "Short read of FUSE request header ({} < {})", len, mem::size_of::<fuse_in_header>()),
+            RequestError::ShortReadHeader(len) => write!(
+                f,
+                "Short read of FUSE request header ({} < {})",
+                len,
+                mem::size_of::<fuse_in_header>()
+            ),
             RequestError::UnknownOperation(opcode) => write!(f, "Unknown FUSE opcode ({})", opcode),
-            RequestError::ShortRead(len, total) => write!(f, "Short read of FUSE request ({} < {})", len, total),
+            RequestError::ShortRead(len, total) => {
+                write!(f, "Short read of FUSE request ({} < {})", len, total)
+            }
             RequestError::InsufficientData => write!(f, "Insufficient argument data"),
         }
     }
 }
 
 impl error::Error for RequestError {}
-
 
 /// Filesystem operation (and arguments) the kernel driver wants us to perform. The fields of each
 /// variant needs to match the actual arguments the kernel driver sends for the specific operation.
@@ -155,8 +160,8 @@ pub enum Operation<'a> {
     Destroy,
     // TODO: FUSE_IOCTL since ABI 7.11
     // IoCtl {
-    //     arg: &'a fuse_ioctl_in,
-    //     data: &'a [u8],
+    //    arg: &'a fuse_ioctl_in,
+    //    data: &'a [u8],
     // },
     // TODO: FUSE_POLL since ABI 7.11
     // Poll {
@@ -350,7 +355,11 @@ pub struct Request<'a> {
 
 impl<'a> fmt::Display for Request<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "FUSE({:3}) ino {:#018x}: {}", self.header.unique, self.header.nodeid, self.operation)
+        write!(
+            f,
+            "FUSE({:3}) ino {:#018x}: {}",
+            self.header.unique, self.header.nodeid, self.operation
+        )
     }
 }
 
@@ -410,7 +419,7 @@ impl<'a> Request<'a> {
 
     /// Returns the PID of the process that triggered this request.
     #[inline]
-    pub fn pid(&self) -> u32 {
+    pub fn pid(&self) -> i32 {
         self.header.pid
     }
 

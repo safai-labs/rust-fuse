@@ -3,3 +3,4 @@
 .history
 fuse-abi/Cargo.lock
 fuse-sys/Cargo.lock
+target/
